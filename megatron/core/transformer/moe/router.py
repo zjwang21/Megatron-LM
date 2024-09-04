@@ -18,6 +18,7 @@ from megatron.core.transformer.moe.moe_utils import (
     switch_load_balancing_loss_func,
     topk_softmax_with_capacity,
     z_loss_func,
+    moe_lpr_loss_func,
 )
 from megatron.core.transformer.transformer_config import TransformerConfig
 
@@ -138,7 +139,7 @@ class TopKRouter(Router):
             scores, indices = torch.topk(logits, k=self.topk, dim=1)
         return scores, indices
 
-    def aux_loss_load_balancing(self, logits: torch.Tensor):
+    def aux_loss_load_balancing(self, logits: torch.Tensor, lang_mask: torch.Tensor = None):
         """Apply loss-based load balancing to the logits tensor.
 
         Args:
@@ -161,7 +162,49 @@ class TopKRouter(Router):
             # Apply load balancing loss
             scores = torch.softmax(logits, dim=-1, dtype=torch.float32)
             probs = self.apply_load_balancing_loss(scores, tokens_per_expert, activation=probs)
+            if self.config.moe_lpr_loss_coef != None and lang_mask.numel() != 0:
+                self.apply_lpr_loss(scores, lang_mask, activation=probs)
+
         return probs, indices
+
+    def apply_lpr_loss(
+        self,
+        probs: torch.Tensor,
+        lang_mask: torch.Tensor,
+        activation: torch.Tensor,
+    ):
+        """Applies auxiliary loss to the MoE layer.
+
+        Args:
+            probs (torch.Tensor): The probs output by the router for each token. [num_tokens, num_experts]
+            num_local_tokens_per_expert (torch.Tensor): The number of tokens per expert. [num_experts]
+            activation (torch.Tensor): The activation tensor to attach the gradient function to.
+
+        Returns:
+            torch.Tensor: The activation tensor with the attached gradient function.
+        """
+        moe_lpr_coef = self.config.moe_lpr_coef
+        sequence_partition_group = None
+        if self.config.moe_token_dispatcher_type == "alltoall_seq":
+            sequence_partition_group = parallel_state.get_context_parallel_group()
+            moe_lpr_coef /= parallel_state.get_tensor_model_parallel_world_size()
+        else:
+            sequence_partition_group = parallel_state.get_tensor_and_context_parallel_group()
+
+        lpr_loss = moe_lpr_loss_func(
+            probs,
+            moe_lpr_coef,
+            lang_mask,
+        )
+        save_to_aux_losses_tracker(
+            "lpr_loss",
+            lpr_loss / moe_lpr_coef,
+            self.layer_number,
+            self.config.num_layers,
+            reduce_group=sequence_partition_group,
+        )
+        activation = MoEAuxLossAutoScaler.apply(activation, moe_lpr_coef)
+        return activation
 
     def apply_load_balancing_loss(
         self,
@@ -247,7 +290,7 @@ class TopKRouter(Router):
         else:
             return input
 
-    def routing(self, logits: torch.Tensor):
+    def routing(self, logits: torch.Tensor, lang_mask=None):
         """Top-k routing function
 
         Args:
@@ -269,7 +312,7 @@ class TopKRouter(Router):
         if self.routing_type == "sinkhorn":
             scores, indices = self.sinkhorn_load_balancing(logits)
         elif self.routing_type == "aux_loss":
-            scores, indices = self.aux_loss_load_balancing(logits)
+            scores, indices = self.aux_loss_load_balancing(logits, lang_mask)
         elif self.routing_type == "none":
             # A naive top-k routing without load balancing
             scores, indices, _ = topk_softmax_with_capacity(
@@ -285,7 +328,7 @@ class TopKRouter(Router):
 
         return scores, indices
 
-    def forward(self, input: torch.Tensor):
+    def forward(self, input: torch.Tensor, lang_mask=None):
         """
         Forward pass of the router.
 
@@ -299,6 +342,6 @@ class TopKRouter(Router):
         logits = self.gating(input)
         logits = logits.view(-1, self.config.num_moe_experts)
 
-        scores, indices = self.routing(logits)
+        scores, indices = self.routing(logits, lang_mask)
 
         return scores, indices

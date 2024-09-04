@@ -244,6 +244,9 @@ class TransformerConfig(ModelParallelConfig):
     moe_aux_loss_coeff: float = 0  # 1e-2 would be a good start value for load balance loss.
     """Scaling coefficient for the aux loss. A starting value of 1e-2 is recommended."""
 
+    moe_lpr_loss_coef: float = None  # 1e-2 would be a good start value for load balance loss.
+    """Scaling coefficient for the aux loss. A starting value of 1e-2 is recommended."""
+
     moe_z_loss_coeff: float = None  # 1e-3 would be a good start value for z-loss
     """Scaling coefficient for the z-loss. A starting value of 1e-3 is recommended."""
 

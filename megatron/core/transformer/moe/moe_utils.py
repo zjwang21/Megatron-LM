@@ -3,6 +3,7 @@
 import math
 
 import torch
+from torch.nn import CrossEntropyLoss
 
 from megatron.core import parallel_state
 
@@ -46,6 +47,18 @@ def switch_load_balancing_loss_func(
     )
     return aux_loss
 
+
+def moe_lpr_loss_func(
+    probs: torch.Tensor,
+    moe_lpr_coef: float,
+    lang_mask: torch.Tensor,
+):
+    loss_func = CrossEntropyLoss()
+    mask = lang_mask.reshape(-1).bool().expand(probs.size()[:2])
+    probs = probs[mask].to(torch.float).contiguous() # n x e
+    target = torch.zeros_like(probs, dtype=torch.long)[:, 0].contiguous()
+    loss = loss_func(probs, target) * moe_lpr_coef
+    return loss
 
 def z_loss_func(logits, z_loss_coeff):
     """Encourages the router's logits to remain small to enhance stability.

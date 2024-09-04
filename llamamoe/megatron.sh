@@ -3,8 +3,11 @@
 # Runs Mixtral 8x7B model
 
 export CUDA_DEVICE_MAX_CONNECTIONS=1
+MEGATRONN_PATH=$1
+HF_DATA_PATCH_PATH=$MEGATRONN_PATH/tools
+export PYTHONPATH=${MEGATRONN_PATH}:${HF_DATA_PATCH_PATH}:$PYTHONPATH
 
-GPUS_PER_NODE=8
+GPUS_PER_NODE=4
 # Change for multinode config
 MASTER_ADDR=${MASTER_ADDR:-"localhost"}
 MASTER_PORT=${MASTER_PORT:-"6000"}
@@ -12,10 +15,10 @@ NNODES=1
 NODE_RANK=0
 WORLD_SIZE=$(($GPUS_PER_NODE*$NNODES))
 
-CHECKPOINT_PATH=$1
-TOKENIZER_MODEL=$2
-DATA_PATH=$3
-LPR_STAGE=$4
+CHECKPOINT_PATH=$2
+TOKENIZER_MODEL=$3
+DATA_PATH=$4
+LPR_STAGE=$5
 
 DISTRIBUTED_ARGS=(
     --nproc_per_node $GPUS_PER_NODE
@@ -28,8 +31,8 @@ DISTRIBUTED_ARGS=(
 MODEL_ARGS=(
     --use-mcore-models
     --disable-bias-linear
-    --seq-length 4096
-    --max-position-embeddings 32768
+    --seq-length 1024
+    --max-position-embeddings 8192
     --num-layers 32
     --hidden-size 4096
     --ffn-hidden-size 14336
@@ -60,15 +63,15 @@ MOE_ARGS=(
 )
 
 DATA_ARGS=(
-    --tokenizer-type Llama2Tokenizer
+    --tokenizer-type Llama3Tokenizer
     --tokenizer-model ${TOKENIZER_MODEL}
-    --data-path $DATA_PATH
+    --data-cache-path $DATA_PATH
     --split 99990,8,2
 )
 
 TRAINING_ARGS=(
-    --micro-batch-size 1
-    --global-batch-size 2
+    --micro-batch-size 2
+    --global-batch-size 8
     --lr 1e-4
     --train-iters 10000
     --lr-decay-iters 10000
@@ -77,13 +80,12 @@ TRAINING_ARGS=(
     --weight-decay 0.1
     --lr-warmup-iters 500
     --clip-grad 1.0
-    --seq-length 16
     --use-flash-attn
     --bf16
 )
 
 MODEL_PARALLEL_ARGS=(
-    --tensor-model-parallel-size 4
+    --tensor-model-parallel-size 2
     --pipeline-model-parallel-size 1
     --expert-model-parallel-size 2
     --use-distributed-optimizer
@@ -109,7 +111,7 @@ if [ -n "${WANDB_API_KEY}" ]; then
     )
 fi
 
-cd ../Megatron-LM
+cd ../
 torchrun ${DISTRIBUTED_ARGS[@]} pretrain_gpt.py \
     ${MODEL_ARGS[@]} \
     ${MOE_ARGS[@]} \

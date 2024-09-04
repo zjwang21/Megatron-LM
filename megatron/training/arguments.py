@@ -1655,7 +1655,8 @@ def _add_data_args(parser):
                                 'HuggingFaceTokenizer',
                                 'Llama2Tokenizer',
                                 'TikTokenizer',
-                                'NullTokenizer'],
+                                'NullTokenizer',
+                                'Llama3Tokenizer'],
                        help='What type of tokenizer to use.')
     group.add_argument('--tokenizer-model', type=str, default=None,
                        help='Sentencepiece tokenizer model.')
@@ -1863,7 +1864,7 @@ def _add_moe_args(parser):
                        help='Alternative to expert parallelism, all experts are sharded across TPXEP domain.')
     group.add_argument('--moe-lpr-stage', type=int, default=-1,
                        help='Alternative to expert parallelism, all experts are sharded across TPXEP domain.')
-    group.add_argument('--moe-lpr-loss-coef', type=float, default=0.0,
+    group.add_argument('--moe-lpr-loss-coef', type=float, default=None,
                        help='Scaling coefficient for the aux loss: a starting value of 1e-2 is recommended.')
     
     return parser

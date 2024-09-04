@@ -99,7 +99,7 @@ class MoELayer(BaseMoELayer):
             )
         self.moe_layer_recompute = config.moe_layer_recompute
 
-    def forward(self, hidden_states: torch.Tensor):
+    def forward(self, hidden_states: torch.Tensor, lang_mask=None):
         if (
             self.training
             and self.config.tensor_model_parallel_size > 1
@@ -111,8 +111,8 @@ class MoELayer(BaseMoELayer):
             )
 
         # process MoE
-        def custom_forward(hidden_states):
-            probs, indices = self.router(hidden_states)
+        def custom_forward(hidden_states, lang_mask):
+            probs, indices = self.router(hidden_states, lang_mask)
             (dispatched_input, tokens_per_expert) = self.token_dispatcher.token_permutation(
                 hidden_states, probs, indices
             )
@@ -121,8 +121,8 @@ class MoELayer(BaseMoELayer):
             return output, mlp_bias
 
         if self.moe_layer_recompute:
-            output, mlp_bias = tensor_parallel.checkpoint(custom_forward, False, hidden_states)
+            output, mlp_bias = tensor_parallel.checkpoint(custom_forward, False, hidden_states, lang_mask)
         else:
-            output, mlp_bias = custom_forward(hidden_states)
+            output, mlp_bias = custom_forward(hidden_states, lang_mask)
 
         return output, mlp_bias

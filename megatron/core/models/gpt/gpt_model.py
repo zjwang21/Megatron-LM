@@ -185,6 +185,7 @@ class GPTModel(LanguageModule):
         inference_params: InferenceParams = None,
         packed_seq_params: PackedSeqParams = None,
         extra_block_kwargs: dict = None,
+        lang_mask=None,
     ) -> Tensor:
         """Forward function of the GPT Model This function passes the input tensors
         through the embedding layer, and then the decoeder and finally into the post
@@ -220,6 +221,7 @@ class GPTModel(LanguageModule):
             inference_params=inference_params,
             rotary_pos_emb=rotary_pos_emb,
             packed_seq_params=packed_seq_params,
+            lang_mask=lang_mask,
             **(extra_block_kwargs or {}),
         )
 

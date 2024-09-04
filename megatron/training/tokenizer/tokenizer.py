@@ -64,6 +64,21 @@ def build_tokenizer(args, **kwargs):
     elif args.tokenizer_type == 'NullTokenizer':
         assert args.vocab_size is not None
         tokenizer = _NullTokenizer(args.vocab_size)
+    elif args.tokenizer_type == 'Llama3Tokenizer':
+        from transformers import AutoTokenizer
+        tokenizer = AutoTokenizer.from_pretrained(
+            args.tokenizer_model,
+            model_max_length=args.seq_length,
+            padding_side="right",
+            use_fast=False,
+            trust_remote_code=True
+        )
+
+        if tokenizer.pad_token is None:
+            tokenizer.add_special_tokens(special_tokens_dict=dict(pad_token="<|PAD|>"))
+        tokenizer.eod = tokenizer.eos_token_id
+        args.padded_vocab_size = 128256
+
     else:
         raise NotImplementedError('{} tokenizer is not '
                                   'implemented.'.format(args.tokenizer_type))
