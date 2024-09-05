@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Optional
 
+import torch.distributed
+
 if TYPE_CHECKING:
     from megatron.core.transformer.transformer_config import TransformerConfig
     from megatron.core.transformer.transformer_block import TransformerBlock
@@ -95,7 +97,6 @@ class RotaryEmbedding(nn.Module):
             torch.arange(max_seq_len, device=self.inv_freq.device, dtype=self.inv_freq.dtype)
             + offset
         )
-
         if self.seq_len_interpolation_factor is not None:
             seq *= 1 / self.seq_len_interpolation_factor
 
@@ -108,6 +109,7 @@ class RotaryEmbedding(nn.Module):
             emb = torch.stack((freqs.view(-1, 1), freqs.view(-1, 1)), dim=-1).view(
                 freqs.shape[0], -1
             )
+
         # emb [seq_length, .., dim]
         emb = emb[:, None, None, :]
         if parallel_state.get_context_parallel_world_size() > 1:

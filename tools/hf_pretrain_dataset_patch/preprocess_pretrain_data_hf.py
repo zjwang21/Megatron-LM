@@ -89,6 +89,7 @@ def main(
         sequence_length: int = 2048,
         cache_dir: str = "/home/nfs04/wangzj/dataset/cache",
 ):
+    sequence_length += 1    # sequence length must be diviable by tp when embedding. shfit tokens for loss cal will decrease length  by 1.
     tokenizer = transformers.AutoTokenizer.from_pretrained(
         tokenizer_name_or_path,
         cache_dir=cache_dir,

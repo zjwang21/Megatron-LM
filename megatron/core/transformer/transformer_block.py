@@ -314,7 +314,6 @@ class TransformerBlock(MegatronModule):
     ):
         # hidden_states (float): [s, b, h]
         # attention_mask (bool): [1, 1, s, s]
-
         if not self.pre_process:
             # See set_input_tensor()
             hidden_states = self.input_tensor
@@ -427,7 +426,6 @@ class TransformerBlock(MegatronModule):
             hidden_states = make_viewless_tensor(
                 inp=hidden_states, requires_grad=True, keep_graph=True
             )
-
         return hidden_states
 
     def sharded_state_dict(

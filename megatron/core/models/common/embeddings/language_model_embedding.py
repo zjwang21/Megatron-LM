@@ -119,7 +119,6 @@ class LanguageModelEmbedding(MegatronModule):
         # If the input flag for fp32 residual connection is set, convert for float.
         if self.config.fp32_residual_connection:
             embeddings = embeddings.float()
-
         # Dropout.
         if self.config.sequence_parallel:
             if not self.reduce_scatter_embeddings:
@@ -129,6 +128,7 @@ class LanguageModelEmbedding(MegatronModule):
             # Has a small runtime cost (~0.5%).
             if self.config.clone_scatter_output_in_embedding:
                 embeddings = embeddings.clone()
+
             with tensor_parallel.get_cuda_rng_tracker().fork():
                 embeddings = self.embedding_dropout(embeddings)
         else:

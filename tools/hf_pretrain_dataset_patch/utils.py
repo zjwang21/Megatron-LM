@@ -1,4 +1,5 @@
 import torch
+import torch.distributed
 from megatron.core import mpu
 from megatron.training import get_args
 from megatron.training.utils import get_ltor_masks_and_position_ids
@@ -45,28 +46,30 @@ def get_batch_on_this_tp_rank_original(data_iterator):
         if lang_mask is not None:
             batch['lang_mask'] = lang_mask.cuda(non_blocking=True)
 
+        #for k, v in batch.items():
+        #    print(f"{torch.distributed.get_rank()}   {k}: {v.shape}  {v.dtype}")
         if args.pipeline_model_parallel_size == 1:
             _broadcast(batch['tokens'])
             _broadcast(batch['labels'])
             _broadcast(batch['loss_mask'])
             _broadcast(batch['attention_mask'])
             _broadcast(batch['position_ids'])
-        if lang_mask is not None:
-            _broadcast(batch['lang_mask'])
+            if lang_mask is not None:
+                _broadcast(batch['lang_mask'])
 
         elif mpu.is_pipeline_first_stage():
             _broadcast(batch['tokens'])
             _broadcast(batch['attention_mask'])
             _broadcast(batch['position_ids'])
-        if lang_mask is not None:
-            _broadcast(batch['lang_mask'])
+            if lang_mask is not None:
+                _broadcast(batch['lang_mask'])
 
         elif mpu.is_pipeline_last_stage():
             _broadcast(batch['labels'])
             _broadcast(batch['loss_mask'])
             _broadcast(batch['attention_mask'])
-        if lang_mask is not None:
-            _broadcast(batch['lang_mask'])
+            if lang_mask is not None:
+                _broadcast(batch['lang_mask'])
 
     else:
 
@@ -76,7 +79,9 @@ def get_batch_on_this_tp_rank_original(data_iterator):
                              device=torch.cuda.current_device())
         loss_mask = torch.empty((args.micro_batch_size, args.seq_length), dtype=torch.float32,
                                 device=torch.cuda.current_device())
-        attention_mask = torch.empty((args.micro_batch_size, 1, args.seq_length, args.seq_length), dtype=torch.bool,
+        
+        attn_mask_bsz = args.micro_batch_size if args.reset_attention_mask else 1
+        attention_mask = torch.empty((attn_mask_bsz, 1, args.seq_length, args.seq_length), dtype=torch.bool,
                                      device=torch.cuda.current_device())
         position_ids = torch.empty((args.micro_batch_size, args.seq_length), dtype=torch.int64,
                                    device=torch.cuda.current_device())
@@ -87,6 +92,12 @@ def get_batch_on_this_tp_rank_original(data_iterator):
         else:
             lang_mask = None
         
+        #print(f"{torch.distributed.get_rank()}   tokens: {tokens.shape}  {tokens.dtype}")
+        #print(f"{torch.distributed.get_rank()}   labels: {labels.shape}  {labels.dtype}")
+        #print(f"{torch.distributed.get_rank()}   loss_mask: {loss_mask.shape}  {loss_mask.dtype}")
+        #print(f"{torch.distributed.get_rank()}   attention_mask: {attention_mask.shape}  {attention_mask.dtype}")
+        #print(f"{torch.distributed.get_rank()}   position_ids: {position_ids.shape}  {position_ids.dtype}")
+        #print(f"{torch.distributed.get_rank()}   lang_mask: {lang_mask.shape}  {lang_mask.dtype}")
         if args.pipeline_model_parallel_size == 1:
             _broadcast(tokens)
             _broadcast(labels)
@@ -125,4 +136,5 @@ def get_batch_on_this_tp_rank_original(data_iterator):
         }
         if lang_mask is not None:
             batch['lang_mask'] = lang_mask.cuda(non_blocking=True)
+
     return batch

@@ -1,7 +1,7 @@
-W0904 19:10:10.398386 139770395875072 torch/distributed/run.py:757] 
-W0904 19:10:10.398386 139770395875072 torch/distributed/run.py:757] *****************************************
-W0904 19:10:10.398386 139770395875072 torch/distributed/run.py:757] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
-W0904 19:10:10.398386 139770395875072 torch/distributed/run.py:757] *****************************************
+W0905 16:56:53.751246 140086481762368 torch/distributed/run.py:757] 
+W0905 16:56:53.751246 140086481762368 torch/distributed/run.py:757] *****************************************
+W0905 16:56:53.751246 140086481762368 torch/distributed/run.py:757] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0905 16:56:53.751246 140086481762368 torch/distributed/run.py:757] *****************************************
 using world size: 4, data-parallel size: 2, context-parallel size: 1, tensor-model-parallel size: 2, encoder-tensor-model-parallel size: 0, pipeline-model-parallel size: 1, encoder-pipeline-model-parallel size: 0
 WARNING: overriding default arguments for tokenizer_type:GPT2BPETokenizer                        with tokenizer_type:Llama3Tokenizer
 WARNING: Setting args.overlap_p2p_comm to False since non-interleaved schedule does not support overlapping p2p communication
@@ -24,7 +24,7 @@ using torch.bfloat16 for parameters ...
   apply_layernorm_1p .............................. False
   apply_query_key_layer_scaling ................... False
   apply_residual_connection_post_layernorm ........ False
-  apply_rope_fusion ............................... True
+  apply_rope_fusion ............................... False
   async_save ...................................... None
   async_tensor_model_parallel_allreduce ........... False
   attention_dropout ............................... 0.0
@@ -93,7 +93,7 @@ using torch.bfloat16 for parameters ...
   dist_ckpt_strictness ............................ assume_ok_unexpected
   distribute_saved_activations .................... False
   distributed_backend ............................. nccl
-  distributed_timeout_minutes ..................... 10
+  distributed_timeout_minutes ..................... 100000
   embedding_path .................................. None
   empty_unused_memory_level ....................... 0
   enable_ft_package ............................... False
@@ -105,7 +105,7 @@ using torch.bfloat16 for parameters ...
   end_weight_decay ................................ 0.1
   eod_mask_loss ................................... False
   eval_interval ................................... 1000
-  eval_iters ...................................... 10
+  eval_iters ...................................... 500
   evidence_data_path .............................. None
   exit_duration_in_mins ........................... None
   exit_interval ................................... None
@@ -123,7 +123,7 @@ using torch.bfloat16 for parameters ...
   fp8_interval .................................... 1
   fp8_margin ...................................... 0
   fp8_wgrad ....................................... True
-  global_batch_size ............................... 8
+  global_batch_size ............................... 512
   gradient_accumulation_fusion .................... True
   group_query_attention ........................... True
   head_lr_mult .................................... 1.0
@@ -162,13 +162,13 @@ using torch.bfloat16 for parameters ...
   logging_level ................................... None
   loss_scale ...................................... None
   loss_scale_window ............................... 1000
-  lr .............................................. 0.0001
-  lr_decay_iters .................................. 10000
+  lr .............................................. 5e-05
+  lr_decay_iters .................................. 1000
   lr_decay_samples ................................ None
   lr_decay_style .................................. cosine
   lr_warmup_fraction .............................. None
   lr_warmup_init .................................. 0.0
-  lr_warmup_iters ................................. 500
+  lr_warmup_iters ................................. 100
   lr_warmup_samples ............................... 0
   lr_wsd_decay_iters .............................. None
   lr_wsd_decay_samples ............................ None
@@ -184,18 +184,18 @@ using torch.bfloat16 for parameters ...
   max_position_embeddings ......................... 8192
   max_tokens_to_oom ............................... 12000
   merge_file ...................................... None
-  micro_batch_size ................................ 2
+  micro_batch_size ................................ 8
   min_loss_scale .................................. 1.0
-  min_lr .......................................... 1e-05
+  min_lr .......................................... 0.0
   mmap_bin_files .................................. True
   mock_data ....................................... False
-  moe_aux_loss_coeff .............................. 0.01
+  moe_aux_loss_coeff .............................. 5e-05
   moe_expert_capacity_factor ...................... None
   moe_extended_tp ................................. False
   moe_grouped_gemm ................................ False
   moe_input_jitter_eps ............................ None
   moe_layer_recompute ............................. False
-  moe_lpr_loss_coef ............................... None
+  moe_lpr_loss_coeff .............................. 5e-05
   moe_lpr_stage ................................... 2
   moe_pad_expert_input_to_capacity ................ False
   moe_per_layer_logging ........................... False
@@ -209,8 +209,8 @@ using torch.bfloat16 for parameters ...
   no_load_optim ................................... True
   no_load_rng ..................................... True
   no_persist_layer_norm ........................... False
-  no_save_optim ................................... None
-  no_save_rng ..................................... None
+  no_save_optim ................................... True
+  no_save_rng ..................................... True
   non_persistent_ckpt_type ........................ None
   non_persistent_global_ckpt_dir .................. None
   non_persistent_save_interval .................... None
@@ -278,7 +278,7 @@ using torch.bfloat16 for parameters ...
   s3_cache_path ................................... None
   sample_rate ..................................... 1.0
   save ............................................ /home/nfs04/wangzj/models/llama3-8b-mixtral-mcore-exp4-TP2PP1EP2
-  save_interval ................................... 10000
+  save_interval ................................... 500
   scatter_gather_tensors_in_pipeline .............. True
   seed ............................................ 1234
   seq_length ...................................... 1024
@@ -320,7 +320,7 @@ using torch.bfloat16 for parameters ...
   tp_comm_split_ag ................................ True
   tp_comm_split_rs ................................ True
   train_data_path ................................. None
-  train_iters ..................................... 10000
+  train_iters ..................................... 1000
   train_samples ................................... None
   train_sync_interval ............................. None
   transformer_impl ................................ transformer_engine
@@ -336,7 +336,7 @@ using torch.bfloat16 for parameters ...
   use_legacy_models ............................... False
   use_one_sent_docs ............................... False
   use_ring_exchange_p2p ........................... False
-  use_rotary_position_embeddings .................. False
+  use_rotary_position_embeddings .................. True
   use_tp_pp_dp_mapping ............................ False
   valid_data_path ................................. None
   variable_seq_lengths ............................ False
@@ -357,9 +357,9 @@ using torch.bfloat16 for parameters ...
   yaml_cfg ........................................ None
 -------------------- end of arguments ---------------------
 > building Llama3Tokenizer tokenizer ...
-> initializing torch distributed ...
 WARNING: TensorBoard writing requested but is not available (are you using PyTorch 1.1.0 or later?), no TensorBoard logs will be written.
 WARNING: one_logger package is required to enable e2e metrics tracking. please go to https://confluence.nvidia.com/display/MLWFO/Package+Repositories for details to install it
+> initializing torch distributed ...
 > initialized tensor model parallel with size 2
 > initialized pipeline model parallel with size 1
 > setting random seeds to 1234 ...
@@ -367,23 +367,26 @@ WARNING: one_logger package is required to enable e2e metrics tracking. please g
 make: Entering directory '/home/nfs04/wangzj/code/Megatron-LM/megatron/core/datasets'
 make: Nothing to be done for 'default'.
 make: Leaving directory '/home/nfs04/wangzj/code/Megatron-LM/megatron/core/datasets'
->>> done with dataset index builder. Compilation time: 0.143 seconds
+>>> done with dataset index builder. Compilation time: 0.087 seconds
 WARNING: constraints for invoking optimized fused softmax kernel are not met. We default back to unfused kernel invocations.
 > compiling and loading fused kernels ...
->>> done with compiling and loading fused kernels. Compilation time: 0.726 seconds
-[rank0]:[W init.cpp:767] Warning: nvfuser is no longer supported in torch script, use _jit_set_nvfuser_enabled is deprecated and a no-op (function operator())
+>>> done with compiling and loading fused kernels. Compilation time: 0.017 seconds[rank2]:[W init.cpp:767] Warning: nvfuser is no longer supported in torch script, use _jit_set_nvfuser_enabled is deprecated and a no-op (function operator())
 [rank1]:[W init.cpp:767] Warning: nvfuser is no longer supported in torch script, use _jit_set_nvfuser_enabled is deprecated and a no-op (function operator())
-[rank2]:[W init.cpp:767] Warning: nvfuser is no longer supported in torch script, use _jit_set_nvfuser_enabled is deprecated and a no-op (function operator())
+
 [rank3]:[W init.cpp:767] Warning: nvfuser is no longer supported in torch script, use _jit_set_nvfuser_enabled is deprecated and a no-op (function operator())
-time to initialize megatron (seconds): 15.766
-[after megatron is initialized] datetime: 2024-09-04 19:10:40 
+[rank0]:[W init.cpp:767] Warning: nvfuser is no longer supported in torch script, use _jit_set_nvfuser_enabled is deprecated and a no-op (function operator())
+time to initialize megatron (seconds): 9.328
+[after megatron is initialized] datetime: 2024-09-05 16:57:19 
 building GPT model ...
 /home/nfs04/wangzj/miniforge3/envs/pai-megatron/lib/python3.10/site-packages/transformer_engine/pytorch/attention.py:3051: UserWarning: window_size should be (-1, 0) or (>=0, 0) for attn_mask_type=causal
   warnings.warn(
 /home/nfs04/wangzj/miniforge3/envs/pai-megatron/lib/python3.10/site-packages/transformer_engine/pytorch/attention.py:3051: UserWarning: window_size should be (-1, 0) or (>=0, 0) for attn_mask_type=causal
   warnings.warn(
+[WARNING  | megatron.core.tensor_parallel.random]: CPU RNG state changed within GPU RNG context
+[WARNING  | megatron.core.tensor_parallel.random]: CPU RNG state changed within GPU RNG context
 /home/nfs04/wangzj/miniforge3/envs/pai-megatron/lib/python3.10/site-packages/transformer_engine/pytorch/attention.py:3051: UserWarning: window_size should be (-1, 0) or (>=0, 0) for attn_mask_type=causal
   warnings.warn(
+[WARNING  | megatron.core.tensor_parallel.random]: CPU RNG state changed within GPU RNG context
 /home/nfs04/wangzj/miniforge3/envs/pai-megatron/lib/python3.10/site-packages/transformer_engine/pytorch/attention.py:3051: UserWarning: window_size should be (-1, 0) or (>=0, 0) for attn_mask_type=causal
   warnings.warn(
 [WARNING  | megatron.core.tensor_parallel.random]: CPU RNG state changed within GPU RNG context
@@ -499,16 +502,6 @@ building GPT model ...
 [WARNING  | megatron.core.tensor_parallel.random]: CPU RNG state changed within GPU RNG context
 [WARNING  | megatron.core.tensor_parallel.random]: CPU RNG state changed within GPU RNG context
 [WARNING  | megatron.core.tensor_parallel.random]: CPU RNG state changed within GPU RNG context
-[WARNING  | megatron.core.tensor_parallel.random]: CPU RNG state changed within GPU RNG context
-[WARNING  | megatron.core.tensor_parallel.random]: CPU RNG state changed within GPU RNG context
-[WARNING  | megatron.core.tensor_parallel.random]: CPU RNG state changed within GPU RNG context
-[WARNING  | megatron.core.tensor_parallel.random]: CPU RNG state changed within GPU RNG context
-[WARNING  | megatron.core.tensor_parallel.random]: CPU RNG state changed within GPU RNG context
-[WARNING  | megatron.core.tensor_parallel.random]: CPU RNG state changed within GPU RNG context
-[WARNING  | megatron.core.tensor_parallel.random]: CPU RNG state changed within GPU RNG context
-[WARNING  | megatron.core.tensor_parallel.random]: CPU RNG state changed within GPU RNG context
-[WARNING  | megatron.core.tensor_parallel.random]: CPU RNG state changed within GPU RNG context
-[Rank 2] trainable params: 524,288 || all params: 6,834,360,320 || trainable%: 0.0077
 [WARNING  | megatron.core.tensor_parallel.random]: CPU RNG state changed within GPU RNG context
 [WARNING  | megatron.core.tensor_parallel.random]: CPU RNG state changed within GPU RNG context
 [WARNING  | megatron.core.tensor_parallel.random]: CPU RNG state changed within GPU RNG context
@@ -561,20 +554,72 @@ GPTModel(
 )
 Fine-tuning method: MoE-LPR stage 2
 [WARNING  | megatron.core.tensor_parallel.random]: CPU RNG state changed within GPU RNG context
+[WARNING  | megatron.core.tensor_parallel.random]: CPU RNG state changed within GPU RNG context
 [Rank 0] trainable params: 524,288 || all params: 6,834,360,320 || trainable%: 0.0077
- > number of parameters on (tensor, pipeline) model parallel rank (0, 0): 6834360320
-[Rank 3] trainable params: 524,288 || all params: 6,834,360,320 || trainable%: 0.0077
 [Rank 1] trainable params: 524,288 || all params: 6,834,360,320 || trainable%: 0.0077
+[WARNING  | megatron.core.tensor_parallel.random]: CPU RNG state changed within GPU RNG context
+[WARNING  | megatron.core.tensor_parallel.random]: CPU RNG state changed within GPU RNG context
+ > number of parameters on (tensor, pipeline) model parallel rank (0, 0): 6834360320
  > number of parameters on (tensor, pipeline) model parallel rank (1, 0): 6834360320
+[WARNING  | megatron.core.tensor_parallel.random]: CPU RNG state changed within GPU RNG context
+[Rank 3] trainable params: 524,288 || all params: 6,834,360,320 || trainable%: 0.0077
+[WARNING  | megatron.core.tensor_parallel.random]: CPU RNG state changed within GPU RNG context
+[WARNING  | megatron.core.tensor_parallel.random]: CPU RNG state changed within GPU RNG context
+[Rank 2] trainable params: 524,288 || all params: 6,834,360,320 || trainable%: 0.0077
  loading checkpoint from /home/nfs04/wangzj/models/llama3-8b-mixtral-mcore-exp4-TP2PP1EP2 at iteration 1
  checkpoint version 3.0
   successfully loaded checkpoint from /home/nfs04/wangzj/models/llama3-8b-mixtral-mcore-exp4-TP2PP1EP2 [ t 0, p 0 ] at iteration 1
 (min, max) time across ranks (ms):
-    load-checkpoint ................................: (193591.63, 193591.83)
-[after model, optimizer, and learning rate scheduler are built] datetime: 2024-09-04 19:13:55 
+    load-checkpoint ................................: (52987.44, 52989.55)
+[after model, optimizer, and learning rate scheduler are built] datetime: 2024-09-05 16:58:12 
 > building train, validation, and test datasets ...
  > datasets target sizes (minimum size):
-    train:      80000
-    validation: 880
-    test:       80
+    train:      512000
+    validation: 512000
+    test:       256000
 > building train, validation, and test datasets for GPT ...
+  >> total number of samples: 80490
+> finished creating GPT datasets ...
+  >> total number of samples: 80490
+  >> total number of samples: 80490
+  >> total number of samples: 80490
+[after dataloaders are built] datetime: 2024-09-05 16:58:13 
+done with setup ...
+training ...(min, max) time across ranks (ms):
+    model-and-optimizer-setup ......................: (53419.54, 53437.24)
+    train/valid/test-data-iterators-setup ..........: (1108.00, 1243.53)
+
+[before the start of training step] datetime: 2024-09-05 16:58:13 
+/home/nfs04/wangzj/miniforge3/envs/pai-megatron/lib/python3.10/site-packages/transformer_engine/pytorch/attention.py:3051: UserWarning: window_size should be (-1, 0) or (>=0, 0) for attn_mask_type=causal
+  warnings.warn(
+/home/nfs04/wangzj/miniforge3/envs/pai-megatron/lib/python3.10/site-packages/transformer_engine/pytorch/attention.py:3051: UserWarning: window_size should be (-1, 0) or (>=0, 0) for attn_mask_type=causal
+  warnings.warn(
+/home/nfs04/wangzj/miniforge3/envs/pai-megatron/lib/python3.10/site-packages/transformer_engine/pytorch/attention.py:3051: UserWarning: window_size should be (-1, 0) or (>=0, 0) for attn_mask_type=causal
+  warnings.warn(
+/home/nfs04/wangzj/miniforge3/envs/pai-megatron/lib/python3.10/site-packages/transformer_engine/pytorch/attention.py:3051: UserWarning: window_size should be (-1, 0) or (>=0, 0) for attn_mask_type=causal
+  warnings.warn(
+/home/nfs04/wangzj/miniforge3/envs/pai-megatron/lib/python3.10/site-packages/transformer_engine/pytorch/attention.py:3051: UserWarning: window_size should be (-1, 0) or (>=0, 0) for attn_mask_type=causal
+  warnings.warn(
+/home/nfs04/wangzj/miniforge3/envs/pai-megatron/lib/python3.10/site-packages/transformer_engine/pytorch/attention.py:3051: UserWarning: window_size should be (-1, 0) or (>=0, 0) for attn_mask_type=causal
+  warnings.warn(
+/home/nfs04/wangzj/miniforge3/envs/pai-megatron/lib/python3.10/site-packages/transformer_engine/pytorch/attention.py:3051: UserWarning: window_size should be (-1, 0) or (>=0, 0) for attn_mask_type=causal
+  warnings.warn(
+/home/nfs04/wangzj/miniforge3/envs/pai-megatron/lib/python3.10/site-packages/transformer_engine/pytorch/attention.py:3051: UserWarning: window_size should be (-1, 0) or (>=0, 0) for attn_mask_type=causal
+  warnings.warn(
+/home/nfs04/wangzj/miniforge3/envs/pai-megatron/lib/python3.10/site-packages/transformer_engine/pytorch/attention.py:3051: UserWarning: window_size should be (-1, 0) or (>=0, 0) for attn_mask_type=causal
+  warnings.warn(
+/home/nfs04/wangzj/miniforge3/envs/pai-megatron/lib/python3.10/site-packages/transformer_engine/pytorch/attention.py:3051: UserWarning: window_size should be (-1, 0) or (>=0, 0) for attn_mask_type=causal
+  warnings.warn(
+/home/nfs04/wangzj/miniforge3/envs/pai-megatron/lib/python3.10/site-packages/transformer_engine/pytorch/attention.py:3051: UserWarning: window_size should be (-1, 0) or (>=0, 0) for attn_mask_type=causal
+  warnings.warn(
+/home/nfs04/wangzj/miniforge3/envs/pai-megatron/lib/python3.10/site-packages/transformer_engine/pytorch/attention.py:3051: UserWarning: window_size should be (-1, 0) or (>=0, 0) for attn_mask_type=causal
+  warnings.warn(
+ [2024-09-05 17:00:33] iteration        2/    1000 | consumed samples:         1024 | elapsed time per iteration (ms): 139605.1 | learning rate: 5.000000E-07 | global batch size:   512 | lm loss: 2.608720E+00 | loss scale: 1.0 | grad norm: 0.000 | number of skipped iterations:   0 | number of nan iterations:   0 |
+Number of parameters in transformer layers in billions:  23.89
+Number of parameters in embedding layers in billions: 1.05
+Total number of parameters in billions: 24.94
+Number of parameters in most loaded shard in billions: 12.4710
+Theoretical memory footprints: weight and optimizer=142719.05 MB
+[Rank 1] (after 2 iterations) memory (MB) | allocated: 13065.2626953125 | max allocated: 39652.83740234375 | reserved: 43022.0 | max reserved: 43022.0
+[Rank 0] (after 2 iterations) memory (MB) | allocated: 13065.9111328125 | max allocated: 39657.29443359375 | reserved: 42862.0 | max reserved: 42862.0
+ [2024-09-05 17:02:40] iteration        3/    1000 | consumed samples:         1536 | elapsed time per iteration (ms): 126750.3 | learning rate: 1.000000E-06 | global batch size:   512 | lm loss: 2.513368E+00 | loss scale: 1.0 | grad norm: 0.000 | number of skipped iterations:   0 | number of nan iterations:   0 |

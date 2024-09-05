@@ -3,6 +3,7 @@
 from abc import ABC, abstractmethod
 
 import torch
+import torch.distributed
 
 from megatron.core import parallel_state
 from megatron.core.tensor_parallel import (
@@ -161,8 +162,9 @@ class TopKRouter(Router):
         if self.training:
             # Apply load balancing loss
             scores = torch.softmax(logits, dim=-1, dtype=torch.float32)
-            probs = self.apply_load_balancing_loss(scores, tokens_per_expert, activation=probs)
-            if self.config.moe_lpr_loss_coef != None and lang_mask.numel() != 0:
+            if self.config.moe_lpr_stage != 2:
+                probs = self.apply_load_balancing_loss(scores, tokens_per_expert, activation=probs)
+            if self.config.moe_lpr_stage == 2 and lang_mask.numel() != 0:
                 self.apply_lpr_loss(scores, lang_mask, activation=probs)
 
         return probs, indices
@@ -183,13 +185,18 @@ class TopKRouter(Router):
         Returns:
             torch.Tensor: The activation tensor with the attached gradient function.
         """
-        moe_lpr_coef = self.config.moe_lpr_coef
+        moe_lpr_coef = self.config.moe_lpr_loss_coeff
         sequence_partition_group = None
         if self.config.moe_token_dispatcher_type == "alltoall_seq":
             sequence_partition_group = parallel_state.get_context_parallel_group()
             moe_lpr_coef /= parallel_state.get_tensor_model_parallel_world_size()
         else:
             sequence_partition_group = parallel_state.get_tensor_and_context_parallel_group()
+
+        if parallel_state.get_tensor_model_parallel_world_size() > 1:
+            lang_mask = lang_mask.transpose(0, 1).contiguous()
+            lang_mask = torch.chunk(lang_mask, parallel_state.get_tensor_model_parallel_world_size(), dim=0)
+            lang_mask = lang_mask[parallel_state.get_tensor_model_parallel_rank()]
 
         lpr_loss = moe_lpr_loss_func(
             probs,
@@ -203,7 +210,7 @@ class TopKRouter(Router):
             self.config.num_layers,
             reduce_group=sequence_partition_group,
         )
-        activation = MoEAuxLossAutoScaler.apply(activation, moe_lpr_coef)
+        activation = MoEAuxLossAutoScaler.apply(activation, lpr_loss)
         return activation
 
     def apply_load_balancing_loss(

@@ -441,7 +441,7 @@ def forward_backward_no_pipelining(
         no_sync_func = contextlib.nullcontext
 
     model_type = get_model_type(model)
-
+    
     forward_data_store = []
     input_tensor, output_tensor_grad = None, None
     total_num_tokens = torch.zeros([], dtype=torch.int, device="cuda")

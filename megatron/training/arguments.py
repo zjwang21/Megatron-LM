@@ -1864,7 +1864,7 @@ def _add_moe_args(parser):
                        help='Alternative to expert parallelism, all experts are sharded across TPXEP domain.')
     group.add_argument('--moe-lpr-stage', type=int, default=-1,
                        help='Alternative to expert parallelism, all experts are sharded across TPXEP domain.')
-    group.add_argument('--moe-lpr-loss-coef', type=float, default=None,
+    group.add_argument('--moe-lpr-loss-coeff', type=float, default=None,
                        help='Scaling coefficient for the aux loss: a starting value of 1e-2 is recommended.')
     
     return parser

@@ -54,7 +54,7 @@ def moe_lpr_loss_func(
     lang_mask: torch.Tensor,
 ):
     loss_func = CrossEntropyLoss()
-    mask = lang_mask.reshape(-1).bool().expand(probs.size()[:2])
+    mask = lang_mask.reshape(-1).bool()
     probs = probs[mask].to(torch.float).contiguous() # n x e
     target = torch.zeros_like(probs, dtype=torch.long)[:, 0].contiguous()
     loss = loss_func(probs, target) * moe_lpr_coef

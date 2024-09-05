@@ -2,7 +2,7 @@
 
 from collections import OrderedDict
 from typing import Dict, Literal, Optional
-
+import  torch
 from torch import Tensor
 
 from megatron.core import InferenceParams, tensor_parallel
@@ -195,7 +195,6 @@ class GPTModel(LanguageModule):
         """
         # If decoder_input is provided (not None), then input_ids and position_ids are ignored.
         # Otherwise, apply embedding layer on input_ids and position_ids to get decoder_input.
-
         # Decoder embedding.
         if decoder_input is not None:
             pass
@@ -205,7 +204,6 @@ class GPTModel(LanguageModule):
             # intermediate stage of pipeline
             # decoder will get hidden_states from encoder.input_tensor
             decoder_input = None
-
         # Rotary positional embeddings (embedding is None for PP intermediate devices)
         rotary_pos_emb = None
         if self.position_embedding_type == 'rope':
@@ -213,7 +211,6 @@ class GPTModel(LanguageModule):
                 inference_params, self.decoder, decoder_input, self.config
             )
             rotary_pos_emb = self.rotary_pos_emb(rotary_seq_len)
-
         # Run decoder.
         hidden_states = self.decoder(
             hidden_states=decoder_input,

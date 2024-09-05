@@ -204,7 +204,6 @@ def forward_step(data_iterator, model: GPTModel):
     """
     args = get_args()
     timers = get_timers()
-
     # Get the batch.
     timers('batch-generator', log_level=2).start()
     global stimer
@@ -212,7 +211,6 @@ def forward_step(data_iterator, model: GPTModel):
         tokens, labels, loss_mask, attention_mask, position_ids, lang_mask = get_batch(
             data_iterator)
     timers('batch-generator').stop()
-
     with stimer:
         output_tensor = model(tokens, position_ids, attention_mask,
                               labels=labels, lang_mask=lang_mask)

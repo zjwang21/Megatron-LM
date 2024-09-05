@@ -155,7 +155,6 @@ def _reduce_scatter_along_first_dim(input_, input_split_sizes=None):
     # Bypass the function if we are using only 1 GPU.
     if world_size == 1:
         return input_
-
     if input_split_sizes is None:
         dim_size = list(input_.size())
         assert (
