@@ -17,9 +17,9 @@ def build_dataset(
 ):
     def tokenize(examples):
         text = examples['text']
+        inputs = tokenizer(text)
         if 'language' in examples:
             langs  = examples['language']
-            inputs = tokenizer(text)
             langs_mask = [[LANG_DICT[lang]] * len(ids) for lang, ids in zip(langs, inputs['input_ids'])]
             inputs['lang_mask'] = langs_mask
         return inputs
